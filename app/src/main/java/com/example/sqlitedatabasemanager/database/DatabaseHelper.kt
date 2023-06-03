@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.util.Log
 import androidx.core.database.getStringOrNull
 import com.example.sqlitedatabasemanager.models.MainDataModel
 import java.io.FileOutputStream
@@ -30,6 +29,14 @@ class DatabaseHelper : SQLiteOpenHelper {
 
         private fun copyAssetDatabase(context: Context) {
             val isDatabaseExists = isDatabaseExists(context)
+            val manager = PreferenceManager(context)
+            val isLatestVersion = DB_VERSION == manager.getDatabaseVersion()
+
+            // update database
+            if (isDatabaseExists && !isLatestVersion) {
+                context.deleteDatabase(DB_NAME)
+                manager.setDatabaseVersion(DB_VERSION)
+            }
 
             if (isDatabaseExists) return
 
@@ -41,7 +48,6 @@ class DatabaseHelper : SQLiteOpenHelper {
 
         private fun isDatabaseExists(context: Context) : Boolean {
             val dbFile = context.getDatabasePath(DB_NAME)
-
             if (dbFile.exists()) return true
             else if (!dbFile.parentFile.exists()) {
                 dbFile.parentFile.mkdirs()
